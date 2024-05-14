@@ -76,37 +76,37 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   List<Currency> currency = [];
 
-  getResponse() {
+  Future getResponse(BuildContext context) async {
     var url =
         "https://sasansafari.com/flutter/api.php?access_key=flutter123456";
 
-    http.get(Uri.parse(url)).then((value) {
-      if (currency.isEmpty) {
-        if (value.statusCode == 200) {
-          List jsonList = convert.jsonDecode(value.body);
-          if (jsonList.isNotEmpty) {
-            for (int i = 0; i < jsonList.length; i++) {
-              setState(() {
-                currency.add(
-                  Currency(
-                    id: jsonList[i]['id'],
-                    title: jsonList[i]['title'],
-                    price: jsonList[i]['price'],
-                    changes: jsonList[i]['changes'],
-                    status: jsonList[i]['status'],
-                  ),
-                );
-              });
-            }
+    var value = await http.get(Uri.parse(url));
+
+    if (currency.isEmpty) {
+      if (value.statusCode == 200) {
+        List jsonList = convert.jsonDecode(value.body);
+        if (jsonList.isNotEmpty) {
+          for (int i = 0; i < jsonList.length; i++) {
+            setState(() {
+              currency.add(
+                Currency(
+                  id: jsonList[i]['id'],
+                  title: jsonList[i]['title'],
+                  price: jsonList[i]['price'],
+                  changes: jsonList[i]['changes'],
+                  status: jsonList[i]['status'],
+                ),
+              );
+            });
           }
         }
       }
-    });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    getResponse();
+    getResponse(context);
     return SafeArea(
       child: Scaffold(
         backgroundColor: const Color.fromARGB(255, 243, 243, 243),
