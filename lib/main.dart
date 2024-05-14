@@ -1,6 +1,9 @@
+import 'package:coin_market/Model/Currency.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert' as convert;
 
 void main() {
   runApp(const MyApp());
@@ -40,6 +43,18 @@ class MyApp extends StatelessWidget {
             color: Colors.white,
             fontWeight: FontWeight.w300,
           ),
+          displaySmall: TextStyle(
+            fontFamily: 'dana',
+            fontSize: 14,
+            color: Colors.red,
+            fontWeight: FontWeight.w700,
+          ),
+          headlineMedium: TextStyle(
+            fontFamily: 'dana',
+            fontSize: 14,
+            color: Colors.green,
+            fontWeight: FontWeight.w700,
+          ),
         ),
       ),
       debugShowCheckedModeBanner: false,
@@ -48,13 +63,50 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class Home extends StatelessWidget {
+// ignore: must_be_immutable
+class Home extends StatefulWidget {
   const Home({
     super.key,
   });
 
   @override
+  State<Home> createState() => _HomeState();
+}
+
+class _HomeState extends State<Home> {
+  List<Currency> currency = [];
+
+  getResponse() {
+    var url =
+        "https://sasansafari.com/flutter/api.php?access_key=flutter123456";
+
+    http.get(Uri.parse(url)).then((value) {
+      if (currency.isEmpty) {
+        if (value.statusCode == 200) {
+          List jsonList = convert.jsonDecode(value.body);
+          if (jsonList.isNotEmpty) {
+            for (int i = 0; i < jsonList.length; i++) {
+              setState(() {
+                currency.add(
+                  Currency(
+                    id: jsonList[i]['id'],
+                    title: jsonList[i]['title'],
+                    price: jsonList[i]['price'],
+                    changes: jsonList[i]['changes'],
+                    status: jsonList[i]['status'],
+                  ),
+                );
+              });
+            }
+          }
+        }
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    getResponse();
     return SafeArea(
       child: Scaffold(
         backgroundColor: const Color.fromARGB(255, 243, 243, 243),
@@ -150,9 +202,9 @@ class Home extends StatelessWidget {
                 height: 350,
                 child: ListView.separated(
                   physics: const BouncingScrollPhysics(),
-                  itemCount: 20,
+                  itemCount: currency.length,
                   itemBuilder: (BuildContext context, int postion) {
-                    return const MyItem();
+                    return MyItem(postion, currency);
                   },
                   separatorBuilder: (BuildContext context, int index) {
                     if (index % 9 == 0) {
@@ -224,8 +276,13 @@ class Home extends StatelessWidget {
   }
 }
 
+// ignore: must_be_immutable
 class MyItem extends StatelessWidget {
-  const MyItem({
+  int postion;
+  List<Currency> currency;
+  MyItem(
+    this.postion,
+    this.currency, {
     super.key,
   });
 
@@ -250,16 +307,18 @@ class MyItem extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
             Text(
-              "دلار",
+              currency[postion].title!,
               style: Theme.of(context).textTheme.bodyLarge,
             ),
             Text(
-              "16000",
+              currency[postion].price!,
               style: Theme.of(context).textTheme.bodyLarge,
             ),
             Text(
-              "+3",
-              style: Theme.of(context).textTheme.bodyLarge,
+              currency[postion].changes!,
+              style: currency[postion].status == "n"
+                  ? Theme.of(context).textTheme.displaySmall
+                  : Theme.of(context).textTheme.headlineMedium,
             ),
           ],
         ),
