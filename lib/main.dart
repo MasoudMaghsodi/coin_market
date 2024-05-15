@@ -84,6 +84,8 @@ class _HomeState extends State<Home> {
 
     if (currency.isEmpty) {
       if (value.statusCode == 200) {
+        // ignore: use_build_context_synchronously
+        _showSnackBar(context, "بروز رسانی اطلاعات با موفقیت انجام شد");
         List jsonList = convert.jsonDecode(value.body);
         if (jsonList.isNotEmpty) {
           for (int i = 0; i < jsonList.length; i++) {
@@ -102,11 +104,17 @@ class _HomeState extends State<Home> {
         }
       }
     }
+    return value;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    getResponse(context);
   }
 
   @override
   Widget build(BuildContext context) {
-    getResponse(context);
     return SafeArea(
       child: Scaffold(
         backgroundColor: const Color.fromARGB(255, 243, 243, 243),
@@ -200,20 +208,7 @@ class _HomeState extends State<Home> {
               SizedBox(
                 width: double.infinity,
                 height: 350,
-                child: ListView.separated(
-                  physics: const BouncingScrollPhysics(),
-                  itemCount: currency.length,
-                  itemBuilder: (BuildContext context, int postion) {
-                    return MyItem(postion, currency);
-                  },
-                  separatorBuilder: (BuildContext context, int index) {
-                    if (index % 9 == 0) {
-                      return const Add();
-                    } else {
-                      return const SizedBox.shrink();
-                    }
-                  },
-                ),
+                child: listFutureBuilder(context),
               ),
               Padding(
                 padding: const EdgeInsets.only(top: 12.0),
@@ -230,8 +225,10 @@ class _HomeState extends State<Home> {
                       SizedBox(
                         height: 50,
                         child: TextButton.icon(
-                          onPressed: () => _showSnackBar(
-                              context, 'به روز رسانی با موفقیت انجام شد'),
+                          onPressed: () {
+                            currency.clear();
+                            listFutureBuilder(context);
+                          },
                           icon: const Icon(
                             CupertinoIcons.refresh_bold,
                             color: Colors.black,
@@ -268,6 +265,32 @@ class _HomeState extends State<Home> {
           ),
         ),
       ),
+    );
+  }
+
+  FutureBuilder<dynamic> listFutureBuilder(BuildContext context) {
+    return FutureBuilder(
+      future: getResponse(context),
+      builder: (context, snapshot) {
+        return snapshot.hasData
+            ? ListView.separated(
+                physics: const BouncingScrollPhysics(),
+                itemCount: currency.length,
+                itemBuilder: (BuildContext context, int postion) {
+                  return MyItem(postion, currency);
+                },
+                separatorBuilder: (BuildContext context, int index) {
+                  if (index % 9 == 0) {
+                    return const Add();
+                  } else {
+                    return const SizedBox.shrink();
+                  }
+                },
+              )
+            : const Center(
+                child: CircularProgressIndicator(),
+              );
+      },
     );
   }
 
