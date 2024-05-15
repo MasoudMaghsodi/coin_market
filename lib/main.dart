@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert' as convert;
+import 'package:intl/intl.dart';
 
 void main() {
   runApp(const MyApp());
@@ -174,7 +175,7 @@ class _HomeState extends State<Home> {
                 child: Text(
                   "نرخ ارزها در معاملات نقدی و رایج روزانه است معاملات نقدی معاملاتی هستند که خریدار و فروشنده به محض انجام معامله ارزو و ریال را با هم تبادل میکنند.",
                   style: Theme.of(context).textTheme.bodyLarge,
-                  textDirection: TextDirection.rtl,
+                  // textDirection: TextDirection.rtl,
                 ),
               ),
               Padding(
@@ -295,7 +296,8 @@ class _HomeState extends State<Home> {
   }
 
   String _getTime() {
-    return "20:45";
+    DateTime now = DateTime.now();
+    return DateFormat('kk:mm:ss').format(now);
   }
 }
 
@@ -334,11 +336,11 @@ class MyItem extends StatelessWidget {
               style: Theme.of(context).textTheme.bodyLarge,
             ),
             Text(
-              currency[postion].price!,
+              getFarsiNumber(currency[postion].price!),
               style: Theme.of(context).textTheme.bodyLarge,
             ),
             Text(
-              currency[postion].changes!,
+              getFarsiNumber(currency[postion].changes!),
               style: currency[postion].status == "n"
                   ? Theme.of(context).textTheme.displaySmall
                   : Theme.of(context).textTheme.headlineMedium,
@@ -393,4 +395,14 @@ void _showSnackBar(BuildContext context, String msg) {
       backgroundColor: Colors.green,
     ),
   );
+}
+
+String getFarsiNumber(String number) {
+  const en = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+  const fa = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+
+  for (var element in en) {
+    number = number.replaceAll(element, fa[en.indexOf(element)]);
+  }
+  return number;
 }
